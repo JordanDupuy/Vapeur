@@ -1,6 +1,6 @@
-Vapeur - Gestionnaire de jeux vidéo
+# Vapeur - Gestionnaire de jeux vidéo
 
-    Description du projet : 
+## Description du projet : 
 Vapeur est une application web permettant de gérer une collection de jeux vidéo. Cette application propose des fonctionnalités telles que :
 
 La gestion des jeux (création, modification, suppression).
@@ -10,7 +10,7 @@ L'affichage des jeux mis en avant sur la page d'accueil.
 Ce projet a été réalisé avec Express.js, Prisma, et Handlebars
 
 
-    Prérequis :
+## Prérequis :
 Pour exécuter ce projet, vous devez avoir installé :
 
 Node.js
@@ -18,7 +18,7 @@ Prisma
 SQLite
 
 
-    Installation :
+## Installation :
 
 1. Cloner le projet
 
@@ -33,23 +33,49 @@ SQLite
 Le serveur sera accessible à l'adresse http://localhost:3042.
 
 
-    Structure du projet :
+Ou bien avec Docker :
+
+```bash
+docker compose up --build
+```
+
+
+## Structure du projet :
 
 VAPEUR/
 ├── prisma/                # Configuration Prisma (schéma, migrations)
+
 ├── public/                # Fichiers statiques (CSS, images)
+
 ├── views/                 # Templates Handlebars
+
 │   ├── games/             # Vues pour les jeux
+
 │   ├── editors/           # Vues pour les éditeurs
+
 │   ├── genres/            # Vues pour les genres
+
 │   ├── partials/          # Templates partiels (header, footer)
+
 │   └── index.hbs          # Page d'accueil
+
 ├── .env                   # Configuration de la base de données
+
 ├── main.js                # Fichier principal Express.js
+
+├── Dockerfile
+
+├── docker-compose.yml
+
+├── entrypoint.sh
+
+├── db_password.txt
+
 ├── package.json           # Fichier de configuration npm
+
 └── README.md              # Documentation
 
  
- Auteurs :
+#Auteurs :
 Projet réalisé par Jordan DUPUY et Amaury CELARIER.
 
