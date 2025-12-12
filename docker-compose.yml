@@ -1,51 +1,38 @@
-version: '3.8'
-
 services:
-  # ----------------------------------------------------
-  # 1. SERVICE POSTGRESQL (db)
-  # ----------------------------------------------------
   db:
-    image: postgres:16-alpine # Utilisation d'une image PostgreSQL légère
-    container_name: vapeur_postgres
-    restart: always # Redémarre automatiquement si le conteneur s'arrête
+    image: postgres:16-alpine
+    restart: always
     environment:
-      POSTGRES_USER: user_vapeur 
-      POSTGRES_PASSWORD: Vapeur
+      POSTGRES_USER: user_vapeur
       POSTGRES_DB: vapeur_db
-    ports:
-      # Mappe le port interne 5432 sur le port 5432 de votre machine
-      - "5432:5432" 
+      POSTGRES_PASSWORD: Vapeur
     volumes:
-      # Persiste les données de la base de données même après l'arrêt du conteneur
-      - postgres_data:/var/lib/postgresql/data
-
-  # ----------------------------------------------------
-  # 2. SERVICE APPLICATION NODE.JS (app)
-  # ----------------------------------------------------
+      - db_data:/var/lib/postgresql/data  
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_vapeur -d vapeur_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   app:
-    build:
-      context: . # Cherche le Dockerfile dans le répertoire courant
-      target: production # Utilise l'étape 'production' si vous avez un multi-stage build (comme dans l'exemple précédent)
-    container_name: vapeur_app
-    restart: "no" # Vous pouvez mettre 'always' si c'est pour un environnement de test
-    environment:
-      # L'application accède à la base de données via le nom du service 'db'
-      # Le port est le port interne par défaut de Postgres (5432)
-      DATABASE_URL: postgresql://user_vapeur:Vapeur@db:5432/vapeur_db?schema=public
-      # Assurez-vous d'ajouter toutes les autres variables d'environnement nécessaires ici (ex: PORT)
+    build: .
+    restart: always
     ports:
-      # Mappe le port interne 3042 (EXPOSE 3042 dans le Dockerfile) sur le port 3042 de votre machine
       - "3042:3042"
+    environment:
+      DATABASE_URL: postgresql://user_vapeur:PLACEHOLDER@db:5432/vapeur_db?schema=public
+    secrets:
+      - db_password
     depends_on:
-      # Assure que le service 'db' démarre avant 'app'
-      - db
+      db:
+        condition: service_healthy
     volumes:
-      # Utile pour le développement : synchroniser le code sans reconstruire l'image (commenter si vous utilisez l'image de production pure)
-      - .:/usr/src/app
-      - /usr/src/app/node_modules # S'assure que node_modules reste dans le conteneur
+      - /app/node_modules
 
-# ----------------------------------------------------
-# 3. VOLUMES
-# ----------------------------------------------------
 volumes:
-  postgres_data:
+  db_data:
+
+secrets:
+  db_password:
+    file: ./db_password.txt
