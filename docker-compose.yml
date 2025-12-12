@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------
+  # 1. SERVICE POSTGRESQL (db)
+  # ----------------------------------------------------
+  db:
+    image: postgres:16-alpine # Utilisation d'une image PostgreSQL légère
+    container_name: vapeur_postgres
+    restart: always # Redémarre automatiquement si le conteneur s'arrête
+    environment:
+      POSTGRES_USER: user_vapeur 
+      POSTGRES_PASSWORD: Vapeur
+      POSTGRES_DB: vapeur_db
+    ports:
+      # Mappe le port interne 5432 sur le port 5432 de votre machine
+      - "5432:5432" 
+    volumes:
+      # Persiste les données de la base de données même après l'arrêt du conteneur
+      - postgres_data:/var/lib/postgresql/data
+
+  # ----------------------------------------------------
+  # 2. SERVICE APPLICATION NODE.JS (app)
+  # ----------------------------------------------------
+  app:
+    build:
+      context: . # Cherche le Dockerfile dans le répertoire courant
+      target: production # Utilise l'étape 'production' si vous avez un multi-stage build (comme dans l'exemple précédent)
+    container_name: vapeur_app
+    restart: "no" # Vous pouvez mettre 'always' si c'est pour un environnement de test
+    environment:
+      # L'application accède à la base de données via le nom du service 'db'
+      # Le port est le port interne par défaut de Postgres (5432)
+      DATABASE_URL: postgresql://user_vapeur:Vapeur@db:5432/vapeur_db?schema=public
+      # Assurez-vous d'ajouter toutes les autres variables d'environnement nécessaires ici (ex: PORT)
+    ports:
+      # Mappe le port interne 3042 (EXPOSE 3042 dans le Dockerfile) sur le port 3042 de votre machine
+      - "3042:3042"
+    depends_on:
+      # Assure que le service 'db' démarre avant 'app'
+      - db
+    volumes:
+      # Utile pour le développement : synchroniser le code sans reconstruire l'image (commenter si vous utilisez l'image de production pure)
+      - .:/usr/src/app
+      - /usr/src/app/node_modules # S'assure que node_modules reste dans le conteneur
+
+# ----------------------------------------------------
+# 3. VOLUMES
+# ----------------------------------------------------
+volumes:
+  postgres_data:
